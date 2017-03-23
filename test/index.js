@@ -1,14 +1,20 @@
 import test from 'ava'
 import build from '../'
 import compile from 'adapter'
-import pug from 'adapter/adapters/pug'
+import pugCompile from 'adapter-pug'
+import parse from 'parser'
+import pugParse from 'parse-pug'
 
 test.beforeEach(t => { t.context.build = build })
 
 test('pug', t => {
-  const glob = 'test/fixture/basic/*'
-  const compilers = compile([pug])
-  const opts = { compilers: compilers }
+  const compilers = compile([pugCompile])
+  const parsers = parse([pugParse])
+  const opts = {
+    path: 'test/fixture/basic/*',
+    compile: compilers,
+    parsers: parsers
+  }
 
   const expected = {
     about: {
@@ -43,6 +49,6 @@ test('pug', t => {
     }
   }
 
-  t.context.build(glob, opts)
+  t.context.build(opts)
     .then(res => t.deepEqual(res, expected))
 })

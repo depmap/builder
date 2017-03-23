@@ -1,30 +1,27 @@
 const globber = require('glob')
 const path = require('path')
-const parse = {}
+const merge = require('lodash.merge')
+const process = require('process')
 
-// collect all parsers
-globber('./parsers/*', (err, parsers) => {
-  if (err) throw err
-  for (let i = 0; i < parsers.length; i++) {
-    let parser = parsers[i]
-    let name = path.parse(parser).name
-    parser = require(parser)
-    parse[name] = parser
-  }
-})
+const defaults = {
+  path: process.cwd(),
+  ignore: [],
+  loaders: {},
+  glob: undefined
+}
 
 module.exports = (glob, opts) => {
   return new Promise((resolve, reject) => {
-    opts = opts || { glob: {}, compiler: {} }
+    opts = merge({}, defaults, opts)
 
-    files(glob, opts.glob)
+    getFiles(glob, opts.glob)
       .then(buildMeta.bind(null, opts))
       .then(map => resolve(map))
       .catch(err => reject(err))
   })
 }
 
-function files (glob, opts) {
+function getFiles (glob, opts) {
   return new Promise((resolve, reject) => {
     globber(glob, opts, (err, files) => {
       if (err) reject(err)
@@ -43,13 +40,13 @@ function buildMeta (opts, files) {
       let meta = path.parse(file)
       meta.ext = meta.ext.substring(1)
       map[meta.name] = {
-        filename: meta.base,
+        filename: file,
         dependsOn: [],
-        onUpdate: opts.compilers[meta.ext]
+        onUpdate: opts.load[meta.ex].compile
       }
 
       promises.push(
-        parse[meta.ext](file, meta)
+        opts.load[meta.ext].parse(file, meta)
           .then(deps => { map[meta.name].dependsOn = deps })
       )
     }

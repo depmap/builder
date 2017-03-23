@@ -1,0 +1,25 @@
+{
+  "name": "depmap-builder",
+  "version": "1.0.0",
+  "description": "builds dependency object for depmap",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava --verbose test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/hhsnopek/depmap-builder.git"
+  },
+  "author": "Henry Snopek <hhsnopek@gmail.com> (//hhsnopek.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hhsnopek/depmap-builder/issues"
+  },
+  "homepage": "https://github.com/hhsnopek/depmap-builder#readme",
+  "devDependencies": {
+    "ava": "^0.18.2"
+  },
+  "dependencies": {
+    "glob": "^7.1.1"
+  }
+}

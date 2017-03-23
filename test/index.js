@@ -12,32 +12,32 @@ test('pug', t => {
 
   const expected = {
     about: {
-      filename: 'about',
-      dependsOn: [ 'layout.pug', 'meta.pug' ],
+      filename: 'about.pug',
+      dependsOn: [ 'layout', 'meta' ],
       onUpdate: compilers.pug
     },
     footer: {
-      filename: 'footer',
+      filename: 'footer.pug',
       dependsOn: [],
       onUpdate: compilers.pug
     },
     index: {
-      filename: 'index',
-      dependsOn: [ 'layout.pug' ],
+      filename: 'index.pug',
+      dependsOn: [ 'layout' ],
       onUpdate: compilers.pug
     },
     layout: {
-      filename: 'layout',
-      dependsOn: [ 'meta.pug' ],
+      filename: 'layout.pug',
+      dependsOn: [ 'meta' ],
       onUpdate: compilers.pug
     },
     meta: {
-      filename: 'meta',
+      filename: 'meta.pug',
       dependsOn: [],
       onUpdate: compilers.pug
     },
     mixin: {
-      filename: 'mixin',
+      filename: 'mixin.pug',
       dependsOn: [],
       onUpdate: compilers.pug
     }

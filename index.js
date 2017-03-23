@@ -14,7 +14,8 @@ globber('./parsers/*', (err, parsers) => {
 })
 
 module.exports = (glob, opts) => {
-  return new Promise((resolve, reject) => { opts = opts || { glob: {}, compiler: {} }
+  return new Promise((resolve, reject) => {
+    opts = opts || { glob: {}, compiler: {} }
 
     files(glob, opts.glob)
       .then(buildMeta.bind(null, opts))
@@ -42,18 +43,18 @@ function buildMeta (opts, files) {
       let meta = path.parse(file)
       meta.ext = meta.ext.substring(1)
       map[meta.name] = {
-        filename: meta.name,
+        filename: meta.base,
         dependsOn: [],
         onUpdate: opts.compilers[meta.ext]
       }
 
       promises.push(
         parse[meta.ext](file, meta)
-          .then(deps => { map[meta.name].dependsOn = deps  })
+          .then(deps => { map[meta.name].dependsOn = deps })
       )
     }
 
     Promise.all(promises)
-      .then(() => resolve(map) )
+      .then(() => resolve(map))
   })
 }

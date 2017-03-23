@@ -13,7 +13,7 @@ test('pug', t => {
   const expected = {
     about: {
       filename: 'about',
-      dependsOn: [ 'layout.pug' ],
+      dependsOn: [ 'layout.pug', 'meta.pug' ],
       onUpdate: compilers.pug
     },
     footer: {
@@ -33,14 +33,14 @@ test('pug', t => {
     },
     meta: {
       filename: 'meta',
-       dependsOn: [],
+      dependsOn: [],
       onUpdate: compilers.pug
     },
     mixin: {
       filename: 'mixin',
       dependsOn: [],
       onUpdate: compilers.pug
-     }
+    }
   }
 
   t.context.build(glob, opts)

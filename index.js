@@ -10,11 +10,26 @@ const defaults = {
   glob: undefined
 }
 
-module.exports = (glob, opts) => {
+function compilationType (compiler, deps, file) {
+  console.log('before')
+  return new Promise((resolve, reject) => {
+    console.log('promise')
+    compiler.file(path.join(process.cwd(), file))
+      .then(out => {
+        console.log('building ...', file)
+        fs.writeFile(path.join(opts.output, path.parse(file).base), output, err => {
+          if (err) reject(err)
+          resolve()
+        })
+      })
+  })
+}
+
+module.exports = (opts) => {
   return new Promise((resolve, reject) => {
     opts = merge({}, defaults, opts)
 
-    getFiles(glob, opts.glob)
+    getFiles(opts.path, opts.glob)
       .then(buildMeta.bind(null, opts))
       .then(map => resolve(map))
       .catch(err => reject(err))
@@ -42,7 +57,7 @@ function buildMeta (opts, files) {
       map[meta.name] = {
         filename: file,
         dependsOn: [],
-        onUpdate: opts.load[meta.ex].compile
+        onUpdate: compilationType.bind(null, opts.load[meta.ext].compile)
       }
 
       promises.push(

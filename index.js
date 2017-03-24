@@ -10,28 +10,13 @@ const defaults = {
   glob: undefined
 }
 
-function compilationType (compiler, deps, file) {
-  console.log('before')
-  return new Promise((resolve, reject) => {
-    console.log('promise')
-    compiler.file(path.join(process.cwd(), file))
-      .then(out => {
-        console.log('building ...', file)
-        fs.writeFile(path.join(opts.output, path.parse(file).base), output, err => {
-          if (err) reject(err)
-          resolve()
-        })
-      })
-  })
-}
-
 module.exports = (opts) => {
   return new Promise((resolve, reject) => {
     opts = merge({}, defaults, opts)
 
     getFiles(opts.path, opts.glob)
       .then(buildMeta.bind(null, opts))
-      .then(map => resolve(map))
+      .then(map => resolve({ map, options: opts }))
       .catch(err => reject(err))
   })
 }
@@ -57,7 +42,7 @@ function buildMeta (opts, files) {
       map[meta.name] = {
         filename: file,
         dependsOn: [],
-        onUpdate: compilationType.bind(null, opts.load[meta.ext].compile)
+        onUpdate: compilationType.bind(null, opts, meta.ext)
       }
 
       promises.push(
@@ -68,5 +53,17 @@ function buildMeta (opts, files) {
 
     Promise.all(promises)
       .then(() => resolve(map))
+  })
+}
+
+function compilationType (opts, ext,  deps, file) {
+  return new Promise((resolve, reject) => {
+    opts.compiler[ext](path.join(process.cwd(), file))
+      .then(out => {
+        fs.writeFile(path.join(opts.output, path.parse(file).base), output, err => {
+          if (err) reject(err)
+          resolve()
+        })
+      })
   })
 }

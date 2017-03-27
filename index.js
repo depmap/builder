@@ -1,29 +1,57 @@
-const globber = require('glob')
 const path = require('path')
-const merge = require('lodash.merge')
 const process = require('process')
+const globber = require('glob')
+const merge = require('lodash.merge')
+const isEmpty = require('lodash.isEmpty')
+const trueType = require('typeof')
+const pretty = require('depmap-errors')
 
 const defaults = {
   path: process.cwd(),
+  output: '',
   ignore: [],
-  loaders: {},
-  glob: undefined
+  load: {},
+  glob: { ignore: [] }
 }
 
 module.exports = (opts) => {
   return new Promise((resolve, reject) => {
     opts = merge({}, defaults, opts)
 
-    getFiles(opts.path, opts.glob)
+    setupOptions(opts)
+      .then(getFiles)
       .then(buildMeta.bind(null, opts))
       .then(map => resolve({ map, options: opts }))
       .catch(err => reject(err))
   })
 }
 
-function getFiles (glob, opts) {
+function setupOptions (opts) {
   return new Promise((resolve, reject) => {
-    globber(glob, opts, (err, files) => {
+    opts.glob.ignore = opts.glob.ignore.concat(opts.ignore)
+    // TODO check for installed loaders from package.json
+    // TODO if no loaders found, suggest loaders based on filetypes
+    let loadType = trueType(opts.load)
+    if (loadType !== 'object') {
+      reject(new ConfigError(`load TypeError, Unexpected ${loadType}`))
+    } else if (isEmpty(opts.load)) {
+      reject(new ConfigError('load is not set'))
+    }
+
+    if (typeof opts.output !== 'string') {
+      reject(new ConfigError(`output TypeError, Unexpected ${trueType(opts.output)}`))
+    } else if (opts.output === '') {
+      opts.output = 'build'
+      pretty.warn('ConfigWarning: No output specified, using build/')
+    }
+
+    resolve(opts)
+  })
+}
+
+function getFiles (opts) {
+  return new Promise((resolve, reject) => {
+    globber(opts.path, opts.glob, (err, files) => {
       if (err) reject(err)
       resolve(files)
     })
@@ -45,10 +73,14 @@ function buildMeta (opts, files) {
         onUpdate: compilationType.bind(null, opts, meta.ext)
       }
 
-      promises.push(
-        opts.load[meta.ext].parse(file, meta)
-          .then(deps => { map[meta.name].dependsOn = deps })
-      )
+      if (typeof opts.load[meta.ext] !== 'undefined') {
+        promises.push(
+          opts.load[meta.ext].parse(file, meta)
+            .then(deps => { map[meta.name].dependsOn = deps })
+        )
+      } else {
+        throw new Error(`Loader not found for ${meta.ext}`)
+      }
     }
 
     Promise.all(promises)
@@ -66,4 +98,14 @@ function compilationType (opts, ext,  deps, file) {
         })
       })
   })
+}
+
+class ConfigError extends Error {
+  constructor(...args) {
+    super(...args)
+    Object.defineProperty(this, 'name', {
+      value: this.constructor.name
+    })
+    Error.captureStackTrace(this, this.constructor)
+  }
 }
